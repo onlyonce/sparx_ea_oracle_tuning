@@ -1,0 +1,95 @@
+-- UC003
+-- COST: 941/13
+SELECT alias,
+       t_object.object_id AS classifier
+FROM   t_diagramobjects,
+       t_object,
+       t_attribute
+WHERE  t_attribute.classifier <> '0'
+AND    t_attribute.classifier = to_char(t_object.object_id)
+AND    t_attribute.object_id = t_diagramobjects.object_id
+AND    t_diagramobjects.diagram_id = 585
+UNION ALL
+SELECT alias,
+       t_object.object_id AS classifier
+FROM   t_diagramobjects,
+       t_object,
+       t_operation
+WHERE  t_operation.classifier <> '0'
+AND    t_operation.classifier = to_char(t_object.object_id)
+AND    t_operation.object_id = t_diagramobjects.object_id
+AND    t_diagramobjects.diagram_id = 585
+UNION ALL
+SELECT alias,
+       t_object.object_id AS classifier
+FROM   t_diagramobjects,
+       t_object,
+       t_operation,
+       t_operationparams
+WHERE  t_operationparams.classifier <> '0'
+AND    t_operationparams.classifier = to_char(t_object.object_id)
+AND    t_operation.operationid = t_operationparams.operationid
+AND    t_operation.object_id = t_diagramobjects.object_id
+AND    t_diagramobjects.diagram_id = 585;
+
+-- BEFORE
+----------------------------------------------------------------------------------------------------------------------
+| Id   | Operation                                | Name                          | Rows  | Bytes  | Cost | Time     |
+----------------------------------------------------------------------------------------------------------------------
+|    0 | SELECT STATEMENT                         |                               |    53 |  28474 |  941 | 00:00:01 |
+|    1 |   UNION-ALL                              |                               |       |        |      |          |
+|  * 2 |    HASH JOIN                             |                               |     1 |     30 |  315 | 00:00:01 |
+|  * 3 |     HASH JOIN                            |                               |     1 |     17 |    7 | 00:00:01 |
+|    4 |      TABLE ACCESS BY INDEX ROWID BATCHED | T_DIAGRAMOBJECTS              |   106 |    954 |    5 | 00:00:01 |
+|  * 5 |       INDEX RANGE SCAN                   | IX_DIAGRAMOBJECT_DIAGRAMID    |   106 |        |    1 | 00:00:01 |
+|    6 |      VIEW                                | index$_join$_003              |   106 |    848 |    2 | 00:00:01 |
+|  * 7 |       HASH JOIN                          |                               |       |        |      |          |
+|  * 8 |        INDEX FAST FULL SCAN              | IX_ATTRIBUTE_CLASSIFIER       |   106 |    848 |    1 | 00:00:01 |
+|    9 |        INDEX FAST FULL SCAN              | IX_ATTRIBUTE_OBJECTID         |   106 |    848 |    1 | 00:00:01 |
+| * 10 |     TABLE ACCESS FULL                    | T_OBJECT                      | 23013 | 299169 |  308 | 00:00:01 |
+| * 11 |    HASH JOIN                             |                               |    52 |  28444 |  626 | 00:00:01 |
+|   12 |     TABLE ACCESS BY INDEX ROWID BATCHED  | T_DIAGRAMOBJECTS              |   106 |    954 |    5 | 00:00:01 |
+| * 13 |      INDEX RANGE SCAN                    | IX_DIAGRAMOBJECT_DIAGRAMID    |   106 |        |    1 | 00:00:01 |
+|   14 |     VIEW                                 | VW_JF_SET$DFF8006B            |    52 |  27976 |  621 | 00:00:01 |
+|   15 |      UNION-ALL                           |                               |       |        |      |          |
+| * 16 |       HASH JOIN                          |                               |     1 |     19 |  310 | 00:00:01 |
+|   17 |        VIEW                              | index$_join$_006              |     1 |      6 |    2 | 00:00:01 |
+| * 18 |         HASH JOIN                        |                               |       |        |      |          |
+| * 19 |          INDEX FAST FULL SCAN            | IX_OPERATION_CLASSIFIER       |     1 |      6 |    1 | 00:00:01 |
+|   20 |          INDEX FAST FULL SCAN            | IX_OPERATION_OBJECTID         |     1 |      6 |    1 | 00:00:01 |
+| * 21 |        TABLE ACCESS FULL                 | T_OBJECT                      | 23013 | 299169 |  308 | 00:00:01 |
+| * 22 |       HASH JOIN                          |                               |    51 |   1428 |  311 | 00:00:01 |
+| * 23 |        HASH JOIN                         |                               |    51 |    765 |    3 | 00:00:01 |
+|   24 |         INDEX FULL SCAN                  | IX_OPERATION_OBJECTIDOPID     |    27 |    189 |    1 | 00:00:01 |
+|   25 |         VIEW                             | index$_join$_010              |    51 |    408 |    2 | 00:00:01 |
+| * 26 |          HASH JOIN                       |                               |       |        |      |          |
+| * 27 |           INDEX FAST FULL SCAN           | IX_OPERATIONPARAMS_CLASSIFIER |    51 |    408 |    1 | 00:00:01 |
+|   28 |           INDEX FAST FULL SCAN           | IX_OPERATIONPARAMS_OPID       |    51 |    408 |    1 | 00:00:01 |
+| * 29 |        TABLE ACCESS FULL                 | T_OBJECT                      | 23013 | 299169 |  308 | 00:00:01 |
+----------------------------------------------------------------------------------------------------------------------
+
+
+-- AFTER
+-------------------------------------------------------------------------------------------------
+| Id   | Operation              | Name                         | Rows | Bytes | Cost | Time     |
+-------------------------------------------------------------------------------------------------
+|    0 | SELECT STATEMENT       |                              |    4 |   156 |   13 | 00:00:01 |
+|    1 |   UNION-ALL            |                              |      |       |      |          |
+|    2 |    NESTED LOOPS        |                              |    1 |    36 |    4 | 00:00:01 |
+|  * 3 |     HASH JOIN          |                              |    1 |    17 |    3 | 00:00:01 |
+|  * 4 |      INDEX RANGE SCAN  | IDX$DIAOBJ$ID_OBJID          |  106 |   954 |    2 | 00:00:01 |
+|  * 5 |      INDEX FULL SCAN   | IDX$ATTR$CLASFR_OBJID        |  106 |   848 |    1 | 00:00:01 |
+|  * 6 |     INDEX RANGE SCAN   | IDX$OBJ$CHROBJID_OBJID_ALIAS |    1 |    19 |    1 | 00:00:01 |
+|    7 |    NESTED LOOPS        |                              |    1 |    34 |    3 | 00:00:01 |
+|    8 |     NESTED LOOPS       |                              |    1 |    15 |    2 | 00:00:01 |
+|  * 9 |      INDEX FULL SCAN   | IDX$OPER$OBJID_CLASFR        |    1 |     6 |    1 | 00:00:01 |
+| * 10 |      INDEX RANGE SCAN  | IDX$DIAOBJ$ID_OBJID          |    1 |     9 |    1 | 00:00:01 |
+| * 11 |     INDEX RANGE SCAN   | IDX$OBJ$CHROBJID_OBJID_ALIAS |    1 |    19 |    1 | 00:00:01 |
+|   12 |    NESTED LOOPS        |                              |    2 |    86 |    6 | 00:00:01 |
+|   13 |     NESTED LOOPS       |                              |    2 |    48 |    4 | 00:00:01 |
+| * 14 |      HASH JOIN         |                              |    1 |    16 |    3 | 00:00:01 |
+|   15 |       INDEX FULL SCAN  | IDX$OPER$OBJID_CLASFR        |   27 |   189 |    1 | 00:00:01 |
+| * 16 |       INDEX RANGE SCAN | IDX$DIAOBJ$ID_OBJID          |  106 |   954 |    2 | 00:00:01 |
+| * 17 |      INDEX RANGE SCAN  | IDX$OPERP$OBJID_CLASFR       |    2 |    16 |    1 | 00:00:01 |
+| * 18 |     INDEX RANGE SCAN   | IDX$OBJ$CHROBJID_OBJID_ALIAS |    1 |    19 |    1 | 00:00:01 |
+-------------------------------------------------------------------------------------------------

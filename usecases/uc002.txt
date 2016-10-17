@@ -1,0 +1,45 @@
+-- UC002
+-- COST: 223/217
+SELECT t_connector.*,
+       t_diagramobjects.diagram_id
+FROM   t_diagramobjects,
+       t_connector,
+       t_diagramobjects diagramobjects_1
+WHERE  (t_diagramobjects.diagram_id = 585)
+AND    (t_diagramobjects.diagram_id = diagramobjects_1.diagram_id)
+AND    (t_diagramobjects.object_id = t_connector.start_object_id)
+AND    (t_connector.end_object_id = diagramobjects_1.object_id)
+AND    ((t_connector.diagramid) = 0 OR (t_connector.diagramid) = t_diagramobjects.diagram_id)
+ORDER  BY t_connector.seqno;
+
+-- BEFORE
+-------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                 | Name                        | Rows | Bytes  | Cost | Time     |
+-------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                          |                             |    6 |   4314 |  223 | 00:00:01 |
+|   1 |   SORT ORDER BY                           |                             |    6 |   4314 |  223 | 00:00:01 |
+| * 2 |    HASH JOIN                              |                             |    6 |   4314 |  222 | 00:00:01 |
+|   3 |     TABLE ACCESS BY INDEX ROWID BATCHED   | T_DIAGRAMOBJECTS            |  106 |    954 |    5 | 00:00:01 |
+| * 4 |      INDEX RANGE SCAN                     | IX_DIAGRAMOBJECT_DIAGRAMID  |  106 |        |    1 | 00:00:01 |
+|   5 |     NESTED LOOPS                          |                             |  575 | 408250 |  217 | 00:00:01 |
+|   6 |      NESTED LOOPS                         |                             |  575 | 408250 |  217 | 00:00:01 |
+|   7 |       TABLE ACCESS BY INDEX ROWID BATCHED | T_DIAGRAMOBJECTS            |  106 |    954 |    5 | 00:00:01 |
+| * 8 |        INDEX RANGE SCAN                   | IX_DIAGRAMOBJECT_DIAGRAMID  |  106 |        |    1 | 00:00:01 |
+| * 9 |       INDEX RANGE SCAN                    | IX_CONNECTOR_ENDOBJIDCONNID |    5 |        |    1 | 00:00:01 |
+|  10 |      TABLE ACCESS BY INDEX ROWID          | T_CONNECTOR                 |    5 |   3505 |    2 | 00:00:01 |
+-------------------------------------------------------------------------------------------------------------------
+
+-- AFTER
+-------------------------------------------------------------------------------------------------------------
+| Id  | Operation                        | Name                           | Rows | Bytes  | Cost | Time     |
+-------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                 |                                |    6 |   4314 |  217 | 00:00:01 |
+|   1 |   SORT ORDER BY                  |                                |    6 |   4314 |  217 | 00:00:01 |
+| * 2 |    HASH JOIN                     |                                |    6 |   4314 |  216 | 00:00:01 |
+| * 3 |     INDEX RANGE SCAN             | IDX$DIAOBJ$ID_OBJID            |  106 |    954 |    2 | 00:00:01 |
+|   4 |     NESTED LOOPS                 |                                |  575 | 408250 |  214 | 00:00:01 |
+|   5 |      NESTED LOOPS                |                                |  575 | 408250 |  214 | 00:00:01 |
+| * 6 |       INDEX RANGE SCAN           | IDX$DIAOBJ$ID_OBJID            |  106 |    954 |    2 | 00:00:01 |
+| * 7 |       INDEX RANGE SCAN           | IDX$CON$ENDOBJ_CON_STRTOBJ_DID |    5 |        |    1 | 00:00:01 |
+|   8 |      TABLE ACCESS BY INDEX ROWID | T_CONNECTOR                    |    5 |   3505 |    2 | 00:00:01 |
+-------------------------------------------------------------------------------------------------------------

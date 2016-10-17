@@ -1,0 +1,69 @@
+-- UC01
+-- COST: 930/6
+SELECT alias,
+       t_object.object_id AS classifier
+FROM   t_object,
+       t_attribute
+WHERE  t_attribute.classifier <> '0'
+AND    t_attribute.classifier = to_char(t_object.object_id)
+AND    (t_attribute.object_id IN (31813))
+UNION ALL
+SELECT alias,
+       t_object.object_id AS classifier
+FROM   t_object,
+       t_operation
+WHERE  t_operation.classifier <> '0'
+AND    t_operation.classifier = to_char(t_object.object_id)
+AND    (t_operation.object_id IN (31813))
+UNION ALL
+SELECT alias,
+       t_object.object_id AS classifier
+FROM   t_object,
+       t_operation,
+       t_operationparams
+WHERE  t_operationparams.classifier <> '0'
+AND    t_operationparams.classifier = to_char(t_object.object_id)
+AND    t_operation.operationid = t_operationparams.operationid
+AND    (t_operation.object_id IN (31813);
+
+-- BEFORE
+-----------------------------------------------------------------------------------------------------------------
+| Id   | Operation                               | Name                      | Rows  | Bytes  | Cost | Time     |
+-----------------------------------------------------------------------------------------------------------------
+|    0 | SELECT STATEMENT                        |                           |     3 |     68 |  930 | 00:00:01 |
+|    1 |   UNION-ALL                             |                           |       |        |      |          |
+|  * 2 |    HASH JOIN                            |                           |     1 |     21 |  310 | 00:00:01 |
+|  * 3 |     TABLE ACCESS BY INDEX ROWID BATCHED | T_ATTRIBUTE               |     1 |      8 |    2 | 00:00:01 |
+|  * 4 |      INDEX RANGE SCAN                   | IX_ATTRIBUTE_OBJECTID     |     1 |        |    1 | 00:00:01 |
+|  * 5 |     TABLE ACCESS FULL                   | T_OBJECT                  | 23013 | 299169 |  308 | 00:00:01 |
+|  * 6 |    HASH JOIN                            |                           |     1 |     19 |  310 | 00:00:01 |
+|  * 7 |     TABLE ACCESS BY INDEX ROWID BATCHED | T_OPERATION               |     1 |      6 |    2 | 00:00:01 |
+|  * 8 |      INDEX RANGE SCAN                   | IX_OPERATION_OBJECTID     |     1 |        |    1 | 00:00:01 |
+|  * 9 |     TABLE ACCESS FULL                   | T_OBJECT                  | 23013 | 299169 |  308 | 00:00:01 |
+| * 10 |    HASH JOIN                            |                           |     1 |     28 |  310 | 00:00:01 |
+|   11 |     NESTED LOOPS                        |                           |     1 |     15 |    2 | 00:00:01 |
+|   12 |      NESTED LOOPS                       |                           |     2 |     15 |    2 | 00:00:01 |
+| * 13 |       INDEX RANGE SCAN                  | IX_OPERATION_OBJECTIDOPID |     1 |      7 |    1 | 00:00:01 |
+| * 14 |       INDEX RANGE SCAN                  | IX_OPERATIONPARAMS_OPID   |     2 |        |    0 | 00:00:01 |
+| * 15 |      TABLE ACCESS BY INDEX ROWID        | T_OPERATIONPARAMS         |     2 |     16 |    1 | 00:00:01 |
+| * 16 |     TABLE ACCESS FULL                   | T_OBJECT                  | 23013 | 299169 |  308 | 00:00:01 |
+-----------------------------------------------------------------------------------------------------------------
+
+-- AFTER
+------------------------------------------------------------------------------------------------
+| Id   | Operation             | Name                         | Rows | Bytes | Cost | Time     |
+------------------------------------------------------------------------------------------------
+|    0 | SELECT STATEMENT      |                              |    3 |    86 |    6 | 00:00:01 |
+|    1 |   UNION-ALL           |                              |      |       |      |          |
+|    2 |    NESTED LOOPS       |                              |    1 |    27 |    2 | 00:00:01 |
+|  * 3 |     INDEX RANGE SCAN  | IDX$ATTR$OBJID_CLASFR        |    1 |     8 |    1 | 00:00:01 |
+|  * 4 |     INDEX RANGE SCAN  | IDX$OBJ$CHROBJID_OBJID_ALIAS |    1 |    19 |    1 | 00:00:01 |
+|    5 |    NESTED LOOPS       |                              |    1 |    25 |    2 | 00:00:01 |
+|  * 6 |     INDEX RANGE SCAN  | IDX$OPER$OBJID_CLASFR        |    1 |     6 |    1 | 00:00:01 |
+|  * 7 |     INDEX RANGE SCAN  | IDX$OBJ$CHROBJID_OBJID_ALIAS |    1 |    19 |    1 | 00:00:01 |
+|    8 |    NESTED LOOPS       |                              |    1 |    34 |    2 | 00:00:01 |
+|    9 |     NESTED LOOPS      |                              |    1 |    15 |    1 | 00:00:01 |
+| * 10 |      INDEX FULL SCAN  | IDX$OPERP$CLASFR_OBJID       |   51 |   408 |    1 | 00:00:01 |
+| * 11 |      INDEX RANGE SCAN | IX_OPERATION_OBJECTIDOPID    |    1 |     7 |    0 | 00:00:01 |
+| * 12 |     INDEX RANGE SCAN  | IDX$OBJ$CHROBJID_OBJID_ALIAS |    1 |    19 |    1 | 00:00:01 |
+------------------------------------------------------------------------------------------------
