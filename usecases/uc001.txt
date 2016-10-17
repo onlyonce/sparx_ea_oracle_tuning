@@ -1,4 +1,4 @@
--- UC01
+-- UC001
 -- COST: 930/6
 SELECT alias,
        t_object.object_id AS classifier
@@ -24,7 +24,7 @@ FROM   t_object,
 WHERE  t_operationparams.classifier <> '0'
 AND    t_operationparams.classifier = to_char(t_object.object_id)
 AND    t_operation.operationid = t_operationparams.operationid
-AND    (t_operation.object_id IN (31813);
+AND    (t_operation.object_id IN (31813));
 
 -- BEFORE
 -----------------------------------------------------------------------------------------------------------------

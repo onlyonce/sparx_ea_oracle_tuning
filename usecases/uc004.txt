@@ -1,0 +1,108 @@
+-- UC004
+-- COST: 21/19
+SELECT t_xref.*
+FROM   t_xref,
+       t_object
+WHERE  t_object.object_id IN (31626)
+AND    t_object.ea_guid = t_xref.client
+UNION ALL
+SELECT t_xref.*
+FROM   t_xref,
+       t_operation,
+       t_object
+WHERE  t_object.object_id IN (31626)
+AND    t_object.object_id = t_operation.object_id
+AND    t_operation.ea_guid = t_xref.client
+UNION ALL
+SELECT t_xref.*
+FROM   t_xref,
+       t_attribute,
+       t_object
+WHERE  t_object.object_id IN (31626)
+AND    t_object.object_id = t_attribute.object_id
+AND    t_attribute.ea_guid = t_xref.client
+UNION ALL
+SELECT t_xref.*
+FROM   t_xref,
+       t_operationparams,
+       t_operation,
+       t_object
+WHERE  t_object.object_id IN (31626)
+AND    t_object.object_id = t_operation.object_id
+AND    t_operationparams.operationid = t_operation.operationid
+AND    t_operationparams.ea_guid = t_xref.client
+
+-- BEFORE
+--------------------------------------------------------------------------------------------------------------------
+| Id   | Operation                                    | Name                      | Rows | Bytes | Cost | Time     |
+--------------------------------------------------------------------------------------------------------------------
+|    0 | SELECT STATEMENT                             |                           |    4 | 17206 |   21 | 00:00:01 |
+|    1 |   UNION-ALL                                  |                           |      |       |      |          |
+|    2 |    NESTED LOOPS                              |                           |    1 |   437 |    5 | 00:00:01 |
+|    3 |     TABLE ACCESS BY INDEX ROWID              | T_OBJECT                  |    1 |    44 |    2 | 00:00:01 |
+|  * 4 |      INDEX UNIQUE SCAN                       | PK_OBJECT                 |    1 |       |    1 | 00:00:01 |
+|    5 |     TABLE ACCESS BY INDEX ROWID BATCHED      | T_XREF                    |    1 |   393 |    3 | 00:00:01 |
+|  * 6 |      INDEX RANGE SCAN                        | IX_XREF_CLIENT            |    1 |       |    1 | 00:00:01 |
+|    7 |    NESTED LOOPS                              |                           |    1 |   441 |    5 | 00:00:01 |
+|    8 |     NESTED LOOPS                             |                           |    1 |   441 |    5 | 00:00:01 |
+|    9 |      NESTED LOOPS                            |                           |    1 |    48 |    2 | 00:00:01 |
+| * 10 |       INDEX UNIQUE SCAN                      | PK_OBJECT                 |    1 |     5 |    1 | 00:00:01 |
+|   11 |       TABLE ACCESS BY INDEX ROWID BATCHED    | T_ATTRIBUTE               |    1 |    43 |    1 | 00:00:01 |
+| * 12 |        INDEX RANGE SCAN                      | IX_ATTRIBUTE_OBJECTID     |    1 |       |    0 | 00:00:01 |
+| * 13 |      INDEX RANGE SCAN                        | IX_XREF_CLIENT            |    1 |       |    1 | 00:00:01 |
+|   14 |     TABLE ACCESS BY INDEX ROWID              | T_XREF                    |    1 |   393 |    3 | 00:00:01 |
+|   15 |    NESTED LOOPS                              |                           |    2 | 16328 |   11 | 00:00:01 |
+| * 16 |     INDEX UNIQUE SCAN                        | PK_OBJECT                 |    1 |     5 |    1 | 00:00:01 |
+|   17 |     VIEW                                     | VW_JF_SET$9A1FA3C5        |    2 | 16318 |   10 | 00:00:01 |
+|   18 |      UNION-ALL                               |                           |      |       |      |          |
+|   19 |       NESTED LOOPS                           |                           |    1 |   436 |    5 | 00:00:01 |
+|   20 |        NESTED LOOPS                          |                           |    1 |   436 |    5 | 00:00:01 |
+|   21 |         TABLE ACCESS BY INDEX ROWID BATCHED  | T_OPERATION               |    1 |    43 |    2 | 00:00:01 |
+| * 22 |          INDEX RANGE SCAN                    | IX_OPERATION_OBJECTID     |    1 |       |    1 | 00:00:01 |
+| * 23 |         INDEX RANGE SCAN                     | IX_XREF_CLIENT            |    1 |       |    1 | 00:00:01 |
+|   24 |        TABLE ACCESS BY INDEX ROWID           | T_XREF                    |    1 |   393 |    3 | 00:00:01 |
+|   25 |       NESTED LOOPS                           |                           |    1 |   442 |    5 | 00:00:01 |
+|   26 |        NESTED LOOPS                          |                           |    1 |   442 |    5 | 00:00:01 |
+|   27 |         NESTED LOOPS                         |                           |    1 |    49 |    2 | 00:00:01 |
+| * 28 |          INDEX RANGE SCAN                    | IX_OPERATION_OBJECTIDOPID |    1 |     7 |    1 | 00:00:01 |
+|   29 |          TABLE ACCESS BY INDEX ROWID BATCHED | T_OPERATIONPARAMS         |    2 |    84 |    1 | 00:00:01 |
+| * 30 |           INDEX RANGE SCAN                   | IX_OPERATIONPARAMS_OPID   |    2 |       |    0 | 00:00:01 |
+| * 31 |         INDEX RANGE SCAN                     | IX_XREF_CLIENT            |    1 |       |    1 | 00:00:01 |
+|   32 |        TABLE ACCESS BY INDEX ROWID           | T_XREF                    |    1 |   393 |    3 | 00:00:01 |
+--------------------------------------------------------------------------------------------------------------------
+
+-- AFTER
+----------------------------------------------------------------------------------------------------------
+| Id   | Operation                          | Name                      | Rows | Bytes | Cost | Time     |
+----------------------------------------------------------------------------------------------------------
+|    0 | SELECT STATEMENT                   |                           |    4 | 17206 |   19 | 00:00:01 |
+|    1 |   UNION-ALL                        |                           |      |       |      |          |
+|    2 |    NESTED LOOPS                    |                           |    1 |   437 |    5 | 00:00:01 |
+|    3 |     NESTED LOOPS                   |                           |    1 |   437 |    5 | 00:00:01 |
+|  * 4 |      INDEX RANGE SCAN              | IDX$OBJ$OBJID_GUID        |    1 |    44 |    2 | 00:00:01 |
+|  * 5 |      INDEX RANGE SCAN              | IX_XREF_CLIENT            |    1 |       |    1 | 00:00:01 |
+|    6 |     TABLE ACCESS BY INDEX ROWID    | T_XREF                    |    1 |   393 |    3 | 00:00:01 |
+|    7 |    NESTED LOOPS                    |                           |    1 |   441 |    5 | 00:00:01 |
+|    8 |     NESTED LOOPS                   |                           |    1 |   441 |    5 | 00:00:01 |
+|    9 |      NESTED LOOPS                  |                           |    1 |    48 |    2 | 00:00:01 |
+| * 10 |       INDEX UNIQUE SCAN            | PK_OBJECT                 |    1 |     5 |    1 | 00:00:01 |
+| * 11 |       INDEX RANGE SCAN             | IDX$ATTR$OBJID_GUID       |    1 |    43 |    1 | 00:00:01 |
+| * 12 |      INDEX RANGE SCAN              | IX_XREF_CLIENT            |    1 |       |    1 | 00:00:01 |
+|   13 |     TABLE ACCESS BY INDEX ROWID    | T_XREF                    |    1 |   393 |    3 | 00:00:01 |
+|   14 |    NESTED LOOPS                    |                           |    2 | 16328 |    9 | 00:00:01 |
+| * 15 |     INDEX UNIQUE SCAN              | PK_OBJECT                 |    1 |     5 |    1 | 00:00:01 |
+|   16 |     VIEW                           | VW_JF_SET$9A1FA3C5        |    2 | 16318 |    8 | 00:00:01 |
+|   17 |      UNION-ALL                     |                           |      |       |      |          |
+|   18 |       NESTED LOOPS                 |                           |    1 |   436 |    4 | 00:00:01 |
+|   19 |        NESTED LOOPS                |                           |    1 |   436 |    4 | 00:00:01 |
+| * 20 |         INDEX RANGE SCAN           | IDX$OPER$OBJID_GUID       |    1 |    43 |    1 | 00:00:01 |
+| * 21 |         INDEX RANGE SCAN           | IX_XREF_CLIENT            |    1 |       |    1 | 00:00:01 |
+|   22 |        TABLE ACCESS BY INDEX ROWID | T_XREF                    |    1 |   393 |    3 | 00:00:01 |
+|   23 |       NESTED LOOPS                 |                           |    1 |   442 |    4 | 00:00:01 |
+|   24 |        NESTED LOOPS                |                           |    1 |   442 |    4 | 00:00:01 |
+|   25 |         NESTED LOOPS               |                           |    1 |    49 |    1 | 00:00:01 |
+|   26 |          INDEX FULL SCAN           | IDX$OPER$OPERID_GUID      |   52 |  2184 |    1 | 00:00:01 |
+| * 27 |          INDEX RANGE SCAN          | IX_OPERATION_OBJECTIDOPID |    1 |     7 |    0 | 00:00:01 |
+| * 28 |         INDEX RANGE SCAN           | IX_XREF_CLIENT            |    1 |       |    1 | 00:00:01 |
+|   29 |        TABLE ACCESS BY INDEX ROWID | T_XREF                    |    1 |   393 |    3 | 00:00:01 |
+----------------------------------------------------------------------------------------------------------
