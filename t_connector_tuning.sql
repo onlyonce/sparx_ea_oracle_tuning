@@ -1,6 +1,6 @@
 -- UC???: Speed up found starting and ending object relations in manual operation.
 drop index IDX$CON$START_END;
-create unique index IDX$CON$START_END on T_CONNECTOR (START_OBJECT_ID, END_OBJECT_ID) compress 1  reverse;
+create index IDX$CON$START_END on T_CONNECTOR (START_OBJECT_ID, END_OBJECT_ID) compress 1  reverse;
 
 -- UC002
 drop index IDX$CON$ENDOBJ_CON_STRTOBJ_DID;
